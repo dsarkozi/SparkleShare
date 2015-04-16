@@ -44,7 +44,7 @@ namespace SparkleShare {
             TypeHint       = Gdk.WindowTypeHint.Dialog;
 
 
-            SetSizeRequest (680, 400);
+            SetSizeRequest (800, 500);
 
             DeleteEvent += delegate (object sender, DeleteEventArgs args) { args.RetVal = true; };
 

@@ -759,7 +759,7 @@ namespace SparkleShare {
 			}
 			if (type == PageType.FetchIPs) {
 				Header      = String.Format ("Fetching server IPs from IP address ‘{0}’…", Controller.PreviousAddress);
-				Description = "This may take a while for large IPs.\nIsn’t it coffee-o’clock?";
+				Description = "This may take a while for large IPs.\nInsert IP table request here.";
 
 				ProgressBar progress_bar = new ProgressBar ();
 				progress_bar.Pulse ();

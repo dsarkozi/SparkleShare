@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sparkleshare>
+  <plugin>
+    <info>
+      <name>Computer Networks</name>
+      <description>LINGI2141 Computer Networks</description>
+      <icon>obo.jpg</icon>
+      <backend>Git</backend>
+    </info>
+    <address>
+      <value/>
+      <example>ssh://root@hostname[:port]</example>
+    </address>
+    <path>
+      <value/>
+      <example>/path/to/project</example>
+    </path>
+  </plugin>
+</sparkleshare>
