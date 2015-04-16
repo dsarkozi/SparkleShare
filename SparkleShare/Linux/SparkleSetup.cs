@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Gtk;
 using Mono.Unix;
@@ -694,38 +695,92 @@ namespace SparkleShare {
                     Add (slide);
                 }
             }
+			if (type == PageType.SelectIP) {
+				Header = "Choose an IP address";
+				Description = "Select the main server on which your project is hosted.";
 
+				string address = Controller.PreviousAddress;
+
+
+				VBox layout_vertical = new VBox (false, 16);
+
+				ListStore store = new ListStore (typeof (string), typeof (Gdk.Pixbuf), typeof (string));
+
+				SparkleTreeView tree_view = new SparkleTreeView (store) { HeadersVisible = false };
+				ScrolledWindow scrolled_window = new ScrolledWindow () { ShadowType = ShadowType.In };
+				scrolled_window.SetPolicy (PolicyType.Never, PolicyType.Automatic);
+
+				// Padding column
+				tree_view.AppendColumn ("Padding", new Gtk.CellRendererText (), "text", 0);
+				tree_view.Columns [0].Cells [0].Xpad = 4;
+
+				// Icon column
+				tree_view.AppendColumn ("Icon", new Gtk.CellRendererPixbuf (), "pixbuf", 1);
+				tree_view.Columns [1].Cells [0].Xpad = 4;
+
+				// Service column
+				TreeViewColumn service_column = new TreeViewColumn () { Title = "Service"};
+				CellRendererText service_cell = new CellRendererText () { Ypad = 8 };
+				service_column.PackStart (service_cell, true);
+				service_column.SetCellDataFunc (service_cell, new TreeCellDataFunc (RenderServiceColumn));
+
+				List<String> ips = new List<String> ();
+				ips.Add ("10.42.0.1");
+				ips.Add ("10.42.0.2");
+				ips.Add ("10.42.0.3");
+				foreach (string ip in ips) {
+					store.AppendValues ("", new Gdk.Pixbuf (Controller.SelectedPlugin.ImagePath),
+					                    "<b>" + ip + "</b>\n");
+				}
+
+				tree_view.AppendColumn (service_column);
+				scrolled_window.Add (tree_view);
+
+				TreeSelection default_selection = tree_view.Selection;
+
+				layout_vertical.PackStart (new Label (""), false, false, 0);
+				layout_vertical.PackStart (scrolled_window, true, true, 0);
+
+				Add (layout_vertical);
+
+				Button cancel_button = new Button ("Cancel");
+				Button next_button = new Button ("Next");
+
+
+				tree_view.CursorChanged += delegate (object sender, EventArgs e) {
+					address = ips[tree_view.SelectedRow];
+				};
+
+				cancel_button.Clicked += delegate { Controller.PageCancelled (); };
+				next_button.Clicked += delegate { Controller.AddPageCompleted (address, Controller.PreviousPath); };
+
+				AddButton (cancel_button);
+				AddButton (next_button);
+			}
 			if (type == PageType.FetchIPs) {
 				Header      = String.Format ("Fetching server IPs from IP address ‘{0}’…", Controller.PreviousAddress);
 				Description = "This may take a while for large IPs.\nIsn’t it coffee-o’clock?";
 
-				VBox points = new VBox (false, 0);
+				ProgressBar progress_bar = new ProgressBar ();
+				progress_bar.Pulse ();
 
-				Label address = new Label {
-					Markup = "<b>" + Controller.PreviousAddress + "</b> is the address we’ve compiled. " +
-					"Does this look alright?",
-					Wrap   = true,
-					Xalign = 0
-				};
-				Label path = new Label {
-					Markup = "<b>" + Controller.PreviousPath + "</b> is the path we’ve compiled. " +
-					"Does this look alright?",
-					Wrap   = true,
-					Xalign = 0
+				Button cancel_button = new Button () { Label = "Cancel" };
+				Button finish_button = new Button ("Finish") { Sensitive = false };
+
+				Label progress_label = new Label ("Preparing to fetch files…") {
+					Justify = Justification.Right,
+					Xalign  = 1
 				};
 
-				HBox point_one = new HBox (false, 0);
-				point_one.PackStart (address, true, true, 0);
-				points.PackStart (point_one, false, false, 0);
+				cancel_button.Clicked += delegate { Controller.SyncingCancelled (); };
 
-				HBox point_two = new HBox (false, 0);
-				point_two.PackStart (path, true, true, 0);
-				points.PackStart (point_two, false, false, 0);
+				VBox bar_wrapper = new VBox (false, 0);
+				bar_wrapper.PackStart (progress_bar, false, false, 21);
+				bar_wrapper.PackStart (progress_label, false, true, 0);
 
-				Button next_button = new Button ("Next");
-				next_button.Clicked += delegate { Controller.AddPageCompleted (Controller.PreviousAddress, Controller.PreviousPath); };
-				AddButton (next_button);
-				Add (points);
+				Add (bar_wrapper);
+				AddButton (cancel_button);
+				AddButton (finish_button);
 			}
         }
 

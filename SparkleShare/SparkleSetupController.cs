@@ -36,7 +36,8 @@ namespace SparkleShare {
         Tutorial,
         CryptoSetup,
         CryptoPassword,
-		FetchIPs
+		FetchIPs,
+		SelectIP
     }
 
     public enum FieldState {
@@ -516,6 +517,10 @@ namespace SparkleShare {
 
 			if (SelectedPlugin.ToString ().Equals ("Computer Networks", StringComparison.Ordinal)) {
 				ChangePageEvent (PageType.FetchIPs, null);
+				new Thread (() => {
+					Thread.Sleep(2000);
+					ChangePageEvent (PageType.SelectIP, null);
+				}).Start();
 			} else {
 				AddPageCompleted (address, remote_path);
 			}
