@@ -119,5 +119,10 @@ namespace SparkleShare {
             else
                 return null;
         }
+
+		public override string ToString()
+		{
+			return Name;
+		}
     }
 }

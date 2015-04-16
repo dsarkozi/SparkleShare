@@ -35,7 +35,8 @@ namespace SparkleShare {
         Finished,
         Tutorial,
         CryptoSetup,
-        CryptoPassword
+        CryptoPassword,
+		FetchIPs
     }
 
     public enum FieldState {
@@ -134,6 +135,9 @@ namespace SparkleShare {
                     // ...and "Own server" at the very top
                     if (xml_file_path.EndsWith ("own-server.xml")) {
                         Plugins.Insert (0, new SparklePlugin (xml_file_path));
+
+					} else if (xml_file_path.EndsWith ("networks.xml")) {
+						Plugins.Insert (1, new SparklePlugin (xml_file_path));
 
                     } else if (xml_file_path.EndsWith ("ssnet.xml")) {
                         // Plugins.Insert ((local_plugins_count + 1), new SparklePlugin (xml_file_path)); 
@@ -504,6 +508,18 @@ namespace SparkleShare {
             else
                 ChangePageEvent (PageType.Add, null);
         }
+
+		public void FetchIPs (string address, string remote_path)
+		{
+			PreviousAddress = address;
+			PreviousPath = remote_path;
+
+			if (SelectedPlugin.ToString ().Equals ("Computer Networks", StringComparison.Ordinal)) {
+				ChangePageEvent (PageType.FetchIPs, null);
+			} else {
+				AddPageCompleted (address, remote_path);
+			}
+		}
 
 
         public void CheckCryptoSetupPage (string password)

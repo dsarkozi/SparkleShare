@@ -309,7 +309,7 @@ namespace SparkleShare {
                 };
 
                 cancel_button.Clicked += delegate { Controller.PageCancelled (); };
-                add_button.Clicked += delegate { Controller.AddPageCompleted (address_entry.Text, path_entry.Text); };
+                add_button.Clicked += delegate { Controller.FetchIPs (address_entry.Text, path_entry.Text); };
 
 
                 CheckButton check_button = new CheckButton ("Fetch prior revisions") { Active = true };
@@ -694,6 +694,39 @@ namespace SparkleShare {
                     Add (slide);
                 }
             }
+
+			if (type == PageType.FetchIPs) {
+				Header      = String.Format ("Fetching server IPs from IP address ‘{0}’…", Controller.PreviousAddress);
+				Description = "This may take a while for large IPs.\nIsn’t it coffee-o’clock?";
+
+				VBox points = new VBox (false, 0);
+
+				Label address = new Label {
+					Markup = "<b>" + Controller.PreviousAddress + "</b> is the address we’ve compiled. " +
+					"Does this look alright?",
+					Wrap   = true,
+					Xalign = 0
+				};
+				Label path = new Label {
+					Markup = "<b>" + Controller.PreviousPath + "</b> is the path we’ve compiled. " +
+					"Does this look alright?",
+					Wrap   = true,
+					Xalign = 0
+				};
+
+				HBox point_one = new HBox (false, 0);
+				point_one.PackStart (address, true, true, 0);
+				points.PackStart (point_one, false, false, 0);
+
+				HBox point_two = new HBox (false, 0);
+				point_two.PackStart (path, true, true, 0);
+				points.PackStart (point_two, false, false, 0);
+
+				Button next_button = new Button ("Next");
+				next_button.Clicked += delegate { Controller.AddPageCompleted (Controller.PreviousAddress, Controller.PreviousPath); };
+				AddButton (next_button);
+				Add (points);
+			}
         }
 
     
