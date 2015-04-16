@@ -495,6 +495,10 @@ namespace SparkleShare {
         {
             Program.Controller.StopFetcher ();
 
+			if (SelectedPlugin.ToString ().Equals ("Computer Networks", StringComparison.Ordinal)) {
+				PreviousAddress = "";
+			}
+
             if (PendingInvite != null)
                 ChangePageEvent (PageType.Invite, null);
             else

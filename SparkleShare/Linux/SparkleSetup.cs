@@ -752,7 +752,7 @@ namespace SparkleShare {
 				};
 
 				cancel_button.Clicked += delegate { Controller.PageCancelled (); };
-				next_button.Clicked += delegate { Controller.AddPageCompleted (address, Controller.PreviousPath); };
+				next_button.Clicked += delegate { Controller.AddPageCompleted ("root@" + address, Controller.PreviousPath); };
 
 				AddButton (cancel_button);
 				AddButton (next_button);
