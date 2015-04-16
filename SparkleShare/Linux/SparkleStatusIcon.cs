@@ -139,7 +139,7 @@ namespace SparkleShare {
 
                     item.Submenu = new Menu ();
 
-                    this.state_menu_items [i] = new MenuItem (project.StatusMessage) { Sensitive = false };
+                    this.state_menu_items [i] = new SparkleMenuItem (project.StatusMessage) { Sensitive = false };
 
                     (item.Submenu as Menu).Add (this.state_menu_items [i]);
                     (item.Submenu as Menu).Add (new SeparatorMenuItem ());
@@ -151,14 +151,14 @@ namespace SparkleShare {
                             string icons_path   = new string [] {SparkleUI.AssetsPath, "icons", "hicolor", "12x12", "status"}.Combine ();
 
                             foreach (KeyValuePair<string, string> pair in project.UnsyncedChangesInfo)
-                                (item.Submenu as Menu).Add (new MenuItem (pair.Key) {
+                                (item.Submenu as Menu).Add (new SparkleMenuItem (pair.Key) {
                                     Image = new Image () {
                                         File = new string [] {icons_path, pair.Value.Replace ("-12", "")}.Combine () },
                                     Sensitive = false
                                 });
 
                             if (!string.IsNullOrEmpty (project.MoreUnsyncedChanges)) {
-                                (item.Submenu as Menu).Add (new MenuItem (MoreUnsyncedChanges) {
+                                (item.Submenu as Menu).Add (new MenuItem (project.MoreUnsyncedChanges) {
                                     Sensitive = false
                                 });
                             }
