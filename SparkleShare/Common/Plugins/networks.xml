@@ -8,8 +8,8 @@
       <backend>Git</backend>
     </info>
     <address>
-      <value/>
-      <example>ssh://root@hostname[:port]</example>
+      <value>ssh://root@192.168.1.160/</value>
+      <example/>
     </address>
     <path>
       <value/>

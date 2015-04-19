@@ -725,9 +725,8 @@ namespace SparkleShare {
 				service_column.SetCellDataFunc (service_cell, new TreeCellDataFunc (RenderServiceColumn));
 
 				List<String> ips = new List<String> ();
-				ips.Add ("10.42.0.1");
-				ips.Add ("10.42.0.2");
-				ips.Add ("10.42.0.3");
+				ips.Add ("192.168.1.160");
+				ips.Add ("192.168.1.161");
 				foreach (string ip in ips) {
 					store.AppendValues ("", new Gdk.Pixbuf (Controller.SelectedPlugin.ImagePath),
 					                    "<b>" + ip + "</b>\n");
@@ -752,7 +751,7 @@ namespace SparkleShare {
 				};
 
 				cancel_button.Clicked += delegate { Controller.PageCancelled (); };
-				next_button.Clicked += delegate { Controller.AddPageCompleted ("root@" + address, Controller.PreviousPath); };
+				next_button.Clicked += delegate { Controller.AddPageCompleted ("ssh://root@" + address, Controller.PreviousPath); };
 
 				AddButton (cancel_button);
 				AddButton (next_button);
