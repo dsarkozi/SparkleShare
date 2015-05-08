@@ -22,6 +22,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Diagnostics;
 using SparkleLib;
 
 namespace SparkleLib.Git {
@@ -197,7 +198,8 @@ namespace SparkleLib.Git {
                 SparkleLogger.LogInfo ("Git", Name + " | Checking for remote changes...");
                 string current_revision = CurrentRevision;
 
-                SparkleGit git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + RemoteUrl + "\" " + this.branch);
+                //SparkleGit git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + RemoteUrl + "\" " + this.branch);
+				SparkleGit git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + DNSLookup.getRandomIPAddr(RemoteUrl) + "\" " + this.branch);
                 string output  = git.StartAndReadStandardOutput ();
 
                 if (git.ExitCode != 0)
@@ -341,8 +343,8 @@ namespace SparkleLib.Git {
 
         public override bool SyncDown ()
         {
-            SparkleGit git = new SparkleGit (LocalPath, "fetch --progress \"" + RemoteUrl + "\" " + this.branch);
-
+            //SparkleGit git = new SparkleGit (LocalPath, "fetch --progress \"" + RemoteUrl + "\" " + this.branch);
+			SparkleGit git = new SparkleGit (LocalPath, "fetch --progress \"" + DNSLookup.getRandomIPAddr(RemoteUrl, true) +"\" " + this.branch);
             git.StartInfo.RedirectStandardError = true;
             git.Start ();
 
@@ -1221,5 +1223,94 @@ namespace SparkleLib.Git {
             FileAttributes attributes = File.GetAttributes (file);
             return ((attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint);
         }
+
+		private class DNSLookup
+		{
+			static Process dig;
+			static List<string> IPAddresses;
+			static string lastUsedIPAddr = "";
+			static int timeToLive = 0;
+			static DateTime lastLookupTime = DateTime.Now;
+
+			private static void startDig()
+			{
+				dig = new Process {
+					StartInfo = new ProcessStartInfo {
+						FileName = "dig",
+						Arguments = "sparkleshareplusplus.net AAAA",
+						UseShellExecute = false,
+						RedirectStandardOutput = true,
+						CreateNoWindow = true
+					}
+				};
+				proc.Start ();
+			}
+
+			private static List<string> processOutput()
+			{
+				bool recordLines = false;
+				List<string> lines = new List<string> ();
+				while (!dig.StandardOutput.EndOfStream) {
+					string line = dig.StandardOutput.ReadLine ();
+					if (recordLines)
+						lines.Add (line);
+					if (line.StartsWith (";; ANSWER SECTION:")) {
+						recordLines = true;
+						continue;
+					} else if (recordLines && line.Contains ("SECTION")) {
+						recordLines = false;
+						break;
+					}
+				}
+				return lines;
+			}
+
+			private static void splitLines(List<string> lines)
+			{
+				IPAddresses = new List<string> ();
+				string ttl = "";
+				foreach (string line in lines) {
+					string[] splitLine = line.Split (' ');
+					IPAddresses.Add (splitLine [splitLine.Length-1]);
+				}
+				try
+				{
+					timeToLive = Convert.ToInt32 (ttl);
+				}
+				catch (FormatException) {
+					timeToLive = 0;
+				}
+			}
+
+			private static bool refreshLookup()
+			{
+				DateTime nowTime = DateTime.Now;
+				TimeSpan elapsed = new TimeSpan (nowTime.Ticks - lastLookupTime.Ticks);
+				return elapsed.TotalSeconds > timeToLive;
+			}
+
+			private static string getIPAddr(string ip, Uri uri)
+			{
+				return uri.Scheme + Uri.SchemeDelimiter + uri.UserInfo + "@[" + ip + "]" + uri.AbsolutePath;
+			}
+
+			public static string getRandomIPAddr(Uri uri, bool getLastUsed = false)
+			{
+				if (refreshLookup ()) {
+					lastLookupTime = DateTime.Now;
+					startDig ();
+					splitLines (processOutput ());
+				}
+				if (!getLastUsed || !lastUsedIPAddr.Equals("")) {
+					Random rand = new Random ();
+					int index = rand.Next (IPAddresses.Count);
+					lastUsedIPAddr = IPAddresses [index];
+				}
+				SparkleLogger.LogInfo ("DIG", "Last Used IP: " + lastUsedIPAddr);
+				SparkleLogger.LogInfo ("DIG", "TTL: " + timeToLive);
+				SparkleLogger.LogInfo ("DIG", "Last Lookup Time: " + lastLookupTime.ToString());
+				return getIPAddr (lastUsedIPAddr, uri);
+			}
+		}
     }
 }
