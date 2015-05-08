@@ -23,6 +23,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Diagnostics;
+using System.Net;
 using SparkleLib;
 
 namespace SparkleLib.Git {
@@ -198,8 +199,18 @@ namespace SparkleLib.Git {
                 SparkleLogger.LogInfo ("Git", Name + " | Checking for remote changes...");
                 string current_revision = CurrentRevision;
 
-                //SparkleGit git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + RemoteUrl + "\" " + this.branch);
-				SparkleGit git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + DNSLookup.getRandomIPAddr(RemoteUrl) + "\" " + this.branch);
+				SparkleGit git = null;
+				if (RemoteUrl.Host.Contains ("sparkleshareplusplus")) {
+					string remote = DNSLookup.getRandomIPAddr (RemoteUrl);
+					if (remote.Equals (""))
+						return false;
+					else
+						git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + remote + "\" " + this.branch);
+
+				}
+				else {
+					git = new SparkleGit (LocalPath, "ls-remote --heads --exit-code \"" + RemoteUrl + "\" " + this.branch);
+				}
                 string output  = git.StartAndReadStandardOutput ();
 
                 if (git.ExitCode != 0)
@@ -343,8 +354,16 @@ namespace SparkleLib.Git {
 
         public override bool SyncDown ()
         {
-            //SparkleGit git = new SparkleGit (LocalPath, "fetch --progress \"" + RemoteUrl + "\" " + this.branch);
-			SparkleGit git = new SparkleGit (LocalPath, "fetch --progress \"" + DNSLookup.getRandomIPAddr(RemoteUrl, true) +"\" " + this.branch);
+			SparkleGit git = null;
+			if (RemoteUrl.Host.Contains ("sparkleshareplusplus")) {
+				string remote = DNSLookup.getRandomIPAddr (RemoteUrl, true);
+				if (remote.Equals (""))
+					return false;
+				else
+					git = new SparkleGit (LocalPath, "fetch --progress \"" + remote + "\" " + this.branch);
+			} else {
+				git = new SparkleGit (LocalPath, "fetch --progress \"" + RemoteUrl + "\" " + this.branch);
+			}
             git.StartInfo.RedirectStandardError = true;
             git.Start ();
 
@@ -1271,8 +1290,9 @@ namespace SparkleLib.Git {
 				IPAddresses = new List<string> ();
 				string ttl = "";
 				foreach (string line in lines) {
+					IPAddress ip = null;
 					string[] splitLine = line.Split (new char[] {' ', '\t'});
-					if (!splitLine [splitLine.Length - 1].Equals ("")) {
+					if (!splitLine [splitLine.Length - 1].Equals ("") && IPAddress.TryParse(splitLine[splitLine.Length - 1], out ip)) {
 						SparkleLogger.LogInfo ("DIG", "IP: " + splitLine [splitLine.Length - 1]);
 						IPAddresses.Add (splitLine [splitLine.Length - 1]);
 						ttl = splitLine [1];
@@ -1297,7 +1317,10 @@ namespace SparkleLib.Git {
 
 			private static string getIPAddr(string ip, Uri uri)
 			{
-				return uri.Scheme + Uri.SchemeDelimiter + uri.UserInfo + "@[" + ip + "]" + uri.AbsolutePath;
+				if (ip.Equals (""))
+					return ip;
+				else
+					return uri.Scheme + Uri.SchemeDelimiter + uri.UserInfo + "@[" + ip + "]" + uri.AbsolutePath;
 			}
 
 			public static string getRandomIPAddr(Uri uri, bool getLastUsed = false)
@@ -1310,7 +1333,10 @@ namespace SparkleLib.Git {
 				if (!getLastUsed || !lastUsedIPAddr.Equals("")) {
 					Random rand = new Random ();
 					int index = rand.Next (IPAddresses.Count);
-					lastUsedIPAddr = IPAddresses [index];
+					if (IPAddresses.Count > 0)
+						lastUsedIPAddr = IPAddresses [index];
+					else
+						lastUsedIPAddr = "";
 				}
 				SparkleLogger.LogInfo ("DIG", "Last Used IP: " + lastUsedIPAddr);
 				SparkleLogger.LogInfo ("DIG", "TTL: " + timeToLive);
