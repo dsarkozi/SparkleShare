@@ -310,7 +310,7 @@ namespace SparkleShare {
                 };
 
                 cancel_button.Clicked += delegate { Controller.PageCancelled (); };
-                add_button.Clicked += delegate { Controller.FetchIPs (address_entry.Text, path_entry.Text); };
+                add_button.Clicked += delegate { Controller.AddPageCompleted (address_entry.Text, path_entry.Text); };
 
 
                 CheckButton check_button = new CheckButton ("Fetch prior revisions") { Active = true };
