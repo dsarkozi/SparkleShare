@@ -8,8 +8,8 @@
       <backend>Git</backend>
     </info>
     <address>
-      <value>ssh://root@192.168.1.160/</value>
-      <example/>
+      <value/>
+      <example>ssh://[user@]resolver.sparkleshareplusplus.net[:port]</example>
     </address>
     <path>
       <value/>
