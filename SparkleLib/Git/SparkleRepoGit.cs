@@ -1243,7 +1243,7 @@ namespace SparkleLib.Git {
 						CreateNoWindow = true
 					}
 				};
-				proc.Start ();
+				dig.Start ();
 			}
 
 			private static List<string> processOutput()
@@ -1252,15 +1252,16 @@ namespace SparkleLib.Git {
 				List<string> lines = new List<string> ();
 				while (!dig.StandardOutput.EndOfStream) {
 					string line = dig.StandardOutput.ReadLine ();
-					if (recordLines)
-						lines.Add (line);
 					if (line.StartsWith (";; ANSWER SECTION:")) {
 						recordLines = true;
 						continue;
 					} else if (recordLines && line.Contains ("SECTION")) {
 						recordLines = false;
 						break;
-					}
+					} else if (recordLines && line.Equals (""))
+						continue;
+					if (recordLines)
+						lines.Add (line);
 				}
 				return lines;
 			}
@@ -1270,14 +1271,19 @@ namespace SparkleLib.Git {
 				IPAddresses = new List<string> ();
 				string ttl = "";
 				foreach (string line in lines) {
-					string[] splitLine = line.Split (' ');
-					IPAddresses.Add (splitLine [splitLine.Length-1]);
+					string[] splitLine = line.Split (new char[] {' ', '\t'});
+					if (!splitLine [splitLine.Length - 1].Equals ("")) {
+						SparkleLogger.LogInfo ("DIG", "IP: " + splitLine [splitLine.Length - 1]);
+						IPAddresses.Add (splitLine [splitLine.Length - 1]);
+						ttl = splitLine [1];
+					}
 				}
 				try
 				{
 					timeToLive = Convert.ToInt32 (ttl);
 				}
 				catch (FormatException) {
+					SparkleLogger.LogInfo ("DIGErr", "TTL: " + ttl);
 					timeToLive = 0;
 				}
 			}
